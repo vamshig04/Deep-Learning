@@ -1,0 +1,91 @@
+import numpy as np
+
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import confusion_matrix, classification_report
+
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.optimizers import Adam
+data=load_breast_cancer()
+X=data.data
+y=data.target
+print("Dataset shape:", X.shape)
+print("Number of samples:", X.shape[0])
+print("Number of features:", X.shape[1])
+print("Target classes:", data.target_names)
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+test_size=0.2,
+random_state=42,
+    stratify=y
+)
+print("Training samples:", X_train.shape[0])
+print("Testing samples:", X_test.shape[0])
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+model = Sequential()
+
+model.add(Dense(
+    units=1,
+    activation='sigmoid',
+input_shape=(X_train.shape[1],)
+))
+model.compile(
+    optimizer=Adam(learning_rate=0.01),
+    loss='binary_crossentropy',
+    metrics=['accuracy'])
+model.summary()
+
+# Step 7: Train the model
+history = model.fit(
+X_train,
+y_train,
+    epochs=100,
+batch_size=16,
+validation_split=0.2,
+    verbose=1
+)
+y_pred_prob = model.predict(X_test)
+
+# Convert probability values into class labels
+y_pred = (y_pred_prob>= 0.5).astype(int).flatten()
+
+
+# Step 9: Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred)
+recall = recall_score(y_test, y_pred)
+f1 = f1_score(y_test, y_pred)
+
+print("\nLogistic Regression Evaluation Results")
+print("--------------------------------------")
+print("Accuracy :", accuracy)
+print("Precision:", precision)
+print("Recall   :", recall)
+print("F1-score :", f1)
+
+
+# Step 10: Confusion Matrix
+cm = confusion_matrix(y_test, y_pred)
+
+print("\nConfusion Matrix:")
+print(cm)
+
+# Step 11: Classification Report
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred, target_names=data.target_names))
+
+# In TensorFlow/Keras, Logistic Regression is implemented as:
+# Dense(1, activation='sigmoid')
+# This means:
+# Input Features → Single Output Neuron → Sigmoid Activation
+# Since Breast Cancer classification is a binary classification problem, we use:
+# loss='binary_crossentropy'
+
